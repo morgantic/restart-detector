@@ -1,3 +1,0 @@
-plugins.apply 'dev.kikugie.stonecutter'
-stonecutter.active "1.21.11" /* [SC] DO NOT EDIT */
-//-------- !DO NOT EDIT ABOVE THIS LINE! --------\\

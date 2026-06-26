@@ -2,85 +2,75 @@ package dev.enjarai.restartdetector.block;
 
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import eu.pb4.polymer.virtualentity.api.BlockWithElementHolder;
-import net.minecraft.block.*;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.IntProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.random.Random;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import xyz.nucleoid.packettweaker.PacketContext;
+import net.minecraft.world.level.block.Block.*;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.IntegerProperty;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.fabricmc.fabric.api.networking.v1.context.PacketContext;
 
 @SuppressWarnings("deprecation")
 public abstract class SpinnyBlock extends Block implements PolymerBlock, BlockWithElementHolder {
-    public static final IntProperty POWER = Properties.POWER;
-    protected static final VoxelShape SHAPE = Block.createCuboidShape(0.0, 0.0, 0.0, 16.0, 6.0, 16.0);
+    public static final IntegerProperty POWER = BlockStateProperties.POWER;
+    protected static final VoxelShape SHAPE = Block.box(0.0, 0.0, 0.0, 16.0, 6.0, 16.0);
 
-    public SpinnyBlock(Settings settings) {
+    public SpinnyBlock(Properties settings) {
         super(settings);
-        this.setDefaultState(stateManager.getDefaultState().with(POWER, 0));
+        this.registerDefaultState(stateDefinition.any().setValue(POWER, 0));
     }
 
-    public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
-    public boolean hasSidedTransparency(BlockState state) {
+    public boolean useShapeForLightOcclusion(BlockState state) {
         return true;
     }
 
-    public int getWeakRedstonePower(BlockState state, BlockView world, BlockPos pos, Direction direction) {
-        return state.get(POWER);
+    public int getSignal(BlockState state, BlockGetter world, BlockPos pos, Direction direction) {
+        return state.getValue(POWER);
     }
 
-    /*? <1.20.5 {*//*
-    @Override
-    public Block getPolymerBlock(BlockState state) {
-        return Blocks.DAYLIGHT_DETECTOR;
-    }
-    *//*?}*/
-
-    /*? <1.21.2 {*//*
-    @Override
-    public BlockState getPolymerBlockState(BlockState state) {
-        return Blocks.DAYLIGHT_DETECTOR.getDefaultState().with(POWER, state.get(POWER));
-    }
-    *//*?} else {*/
     @Override
     public BlockState getPolymerBlockState(BlockState state, PacketContext packetContext) {
-        return Blocks.DAYLIGHT_DETECTOR.getDefaultState().with(POWER, state.get(POWER));
-    }
-    /*?}*/
-
-    public BlockRenderType getRenderType(BlockState state) {
-        return BlockRenderType.MODEL;
+        return Blocks.DAYLIGHT_DETECTOR.defaultBlockState().setValue(POWER, state.getValue(POWER));
     }
 
-    public boolean emitsRedstonePower(BlockState state) {
+    public RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    public boolean isSignalSource(BlockState state) {
         return true;
     }
 
     @Override
-    public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        world.scheduleBlockTick(pos, this, 20);
+    public void tick(BlockState state, ServerLevel world, BlockPos pos, RandomSource random) {
+        world.scheduleTick(pos, this, 20);
     }
 
     @Override
-    public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-        world.scheduleBlockTick(pos, this, 1);
+    public void onPlace(BlockState state, Level world, BlockPos pos, BlockState oldState, boolean notify) {
+        world.scheduleTick(pos, this, 1);
     }
 
-    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(POWER);
     }
 
     @Override
-    public boolean tickElementHolder(ServerWorld world, BlockPos pos, BlockState initialBlockState) {
+    public boolean tickElementHolder(ServerLevel world, BlockPos pos, BlockState initialBlockState) {
         return true;
     }
 }

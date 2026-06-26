@@ -6,8 +6,8 @@ import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +32,7 @@ public class RestartDetector implements ModInitializer {
 		if (ticksToStop >= 0) {
 			if (ticksToStop == 0) {
 				LOGGER.info("Shutdown countdown complete, stopping the server.");
-				server.stop(false);
+				server.halt(false);
 			}
 
 			ticksToStop--;
@@ -57,7 +57,7 @@ public class RestartDetector implements ModInitializer {
 
 	public static Identifier id(String path) {
 		/*? >=1.21 {*/
-		return Identifier.of(MOD_ID, path);
+		return Identifier.fromNamespaceAndPath(MOD_ID, path);
 		/*?} else {*//*
 		return new Identifier(MOD_ID, path);
 		*//*?}*/

@@ -1,1 +1,1 @@
-- Updated to 1.21.11. (Thank you @meza!)
+- Updated to 26.2 and 26.1

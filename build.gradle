@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.13+'
+	id 'fabric-loom' version '1.17-SNAPSHOT'
 	id 'maven-publish'
 	id "me.modmuss50.mod-publish-plugin" version "0.4.4"
 //	id "dev.kikugie.j52j" version "2.0"
@@ -35,20 +35,19 @@ repositories {
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${stonecutter.current.version}"
-	mappings "net.fabricmc:yarn:${property('deps.yarn')}:v2"
-	modImplementation "net.fabricmc:fabric-loader:${property('deps.fabric_loader')}"
+	implementation "net.fabricmc:fabric-loader:${property('deps.fabric_loader')}"
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
-	modImplementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${property('deps.fabric_api')}"
 
 	// Uncomment the following line to enable the deprecated Fabric API modules.
 	// These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
 
-	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
-	modImplementation include("eu.pb4:polymer-core:${property('deps.polymer')}")
-	modImplementation include("eu.pb4:polymer-virtual-entity:${property('deps.polymer')}")
-	modImplementation include("xyz.nucleoid:server-translations-api:${property('deps.server_translations_api')}")
-	include(modImplementation("me.lucko:fabric-permissions-api:${property('deps.permissions_api')}"))
+	// implementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
+	implementation include("eu.pb4:polymer-core:${property('deps.polymer')}")
+	implementation include("eu.pb4:polymer-virtual-entity:${property('deps.polymer')}")
+	implementation include("xyz.nucleoid:server-translations-api:${property('deps.server_translations_api')}")
+	include(implementation("me.lucko:fabric-permissions-api:${property('deps.permissions_api')}"))
 }
 
 def target = ">=${project.property('mod.min_target')}- <=${project.property('mod.max_target')}"
@@ -60,25 +59,23 @@ processResources {
 
     def resultKey = "item"
 
-    if (stonecutter.compare(mcVersion, "1.21") >= 0) {
-        resultKey = "id"
-        eachFile { fileCopyDetails ->
-            if (fileCopyDetails.path.startsWith('data/restart_detector/loot_tables')) {
-                fileCopyDetails.path = fileCopyDetails.path.replace('data/restart_detector/loot_tables', 'data/restart_detector/loot_table')
-            }
+	resultKey = "id"
+	eachFile { fileCopyDetails ->
+		if (fileCopyDetails.path.startsWith('data/restart_detector/loot_tables')) {
+			fileCopyDetails.path = fileCopyDetails.path.replace('data/restart_detector/loot_tables', 'data/restart_detector/loot_table')
+		}
 
-            if (fileCopyDetails.path.startsWith('data/restart_detector/recipes')) {
-                fileCopyDetails.path = fileCopyDetails.path.replace('data/restart_detector/recipes', 'data/restart_detector/recipe')
-            }
-        }
-        includeEmptyDirs = false
-    }
+		if (fileCopyDetails.path.startsWith('data/restart_detector/recipes')) {
+			fileCopyDetails.path = fileCopyDetails.path.replace('data/restart_detector/recipes', 'data/restart_detector/recipe')
+		}
+	}
+	includeEmptyDirs = false
 
     filesMatching("**/*detector.json") { expand "resultKey": resultKey }
 }
 
 tasks.withType(JavaCompile).configureEach {
-	it.options.release = 17
+	it.options.release = 25
 }
 
 java {
@@ -87,8 +84,8 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 jar {
@@ -117,7 +114,7 @@ publishing {
 // Create a task to collect the completed jars in the root project's build/libs folder.
 def collectJars = tasks.register("collectJars", Copy) {copy ->
 
-	def task = tasks.getByName("remapJar")
+	def task = tasks.getByName("jar")
 
 	dependsOn(task)
 
@@ -134,7 +131,7 @@ loom.runConfigs.server.ideConfigGenerated = true
 loom.runConfigs.client.ideConfigGenerated = true
 
 publishMods {
-	file = remapJar.archiveFile
+	file = jar.archiveFile
 	displayName = "${project.property('mod.version')} for ${stonecutter.current.version}"
 	version = project.version
 	changelog = getRootProject().file("CHANGELOG.md").text
